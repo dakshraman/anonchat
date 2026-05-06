@@ -11,19 +11,19 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libpq-dev \
     libsqlite3-dev \
-    sqlite3 \
-    && docker-php-ext-install pdo pdo_mysql pdo_sqlite pdo_pgsql zip
-
-# Install Node.js for frontend assets
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Copy composer files
 COPY composer.json composer.lock ./
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
+
+# Install Node.js for frontend assets
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs
 
 # Copy application files
 COPY . .
