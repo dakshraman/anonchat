@@ -5,235 +5,121 @@
 @section('styles')
 <style>
     body {
-        /* Prevent bounce on mobile */
         overscroll-behavior-y: none;
-        background-color: #13111C;
+        overflow: hidden;
     }
-
-    .chat-layout {
-        height: 100dvh; /* Dynamic viewport height for mobile browsers */
-        display: flex;
-        flex-direction: column;
+    .chat-grid {
+        height: 100dvh;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
     }
-
-    .chat-header {
-        background: rgba(30, 27, 46, 0.85);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-bottom: 1px solid rgba(196, 181, 253, 0.08);
-        padding-top: env(safe-area-inset-top, 0);
-    }
-
-    .chat-container {
-        flex: 1;
-        overflow-y: auto;
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        scroll-behavior: smooth;
-    }
-
-    .message-wrapper {
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 12px;
-        max-width: 85%;
-        animation: fadeIn 0.3s ease-out forwards;
-    }
-
-    .message-wrapper.sent {
-        align-self: flex-end;
-        align-items: flex-end;
-    }
-
-    .message-wrapper.received {
-        align-self: flex-start;
-        align-items: flex-start;
-    }
-
-    .message-bubble {
+    .messages-container::-webkit-scrollbar { width: 4px; }
+    .messages-container::-webkit-scrollbar-track { background: transparent; }
+    .messages-container::-webkit-scrollbar-thumb { background: rgba(167, 139, 250, 0.1); border-radius: 10px; }
+    
+    .bubble {
+        max-width: 80%;
         padding: 12px 16px;
-        position: relative;
+        border-radius: 20px;
         font-size: 0.95rem;
-        line-height: 1.4;
-        word-wrap: break-word;
+        line-height: 1.5;
+        position: relative;
+        animation: bubble-in 0.2s ease-out forwards;
     }
-
-    .message-wrapper.sent .message-bubble {
-        background: linear-gradient(135deg, #7c3aed, #a78bfa);
+    .bubble-sent {
+        background: linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%);
         color: white;
-        border-radius: 20px 20px 4px 20px;
-        box-shadow: 0 4px 15px rgba(124, 58, 237, 0.2);
+        border-bottom-right-radius: 4px;
+        align-self: flex-end;
     }
-
-    .message-wrapper.received .message-bubble {
-        background: #2A2640;
-        color: #e2e8f0;
-        border-radius: 20px 20px 20px 4px;
-        border: 1px solid rgba(196, 181, 253, 0.1);
-    }
-
-    .message-meta {
-        font-size: 0.7rem;
-        color: rgba(196, 181, 253, 0.5);
-        margin-top: 4px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .input-area {
-        background: rgba(30, 27, 46, 0.95);
-        border-top: 1px solid rgba(196, 181, 253, 0.08);
-        padding: 12px 16px;
-        padding-bottom: calc(12px + env(safe-area-inset-bottom, 0));
-    }
-
-    .chat-input {
-        background: #13111C;
-        border: 1px solid rgba(196, 181, 253, 0.2);
-        border-radius: 24px;
-        padding: 12px 20px;
-        padding-right: 50px; /* Space for send button */
-        color: white;
-        transition: border-color 0.2s;
-    }
-
-    .chat-input:focus {
-        outline: none;
-        border-color: #a78bfa;
-    }
-
-    .send-btn {
-        position: absolute;
-        right: 6px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: #8b5cf6;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        transition: all 0.2s;
-        border: none;
-    }
-
-    .send-btn:hover:not(:disabled) {
-        background: #a78bfa;
-        transform: translateY(-50%) scale(1.05);
-    }
-
-    .send-btn:disabled {
-        background: #4c1d95;
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    /* Typing Animation */
-    .typing-bubble {
-        background: #2A2640;
-        border-radius: 20px 20px 20px 4px;
-        padding: 12px 16px;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        border: 1px solid rgba(196, 181, 253, 0.1);
+    .bubble-received {
+        background: #242133;
+        color: #E2E8F0;
+        border-bottom-left-radius: 4px;
         align-self: flex-start;
-        margin-bottom: 12px;
+        border: 1px solid rgba(167, 139, 250, 0.1);
     }
-
+    @keyframes bubble-in {
+        from { opacity: 0; transform: translateY(10px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
     .typing-dot {
         width: 6px;
         height: 6px;
-        background: #a78bfa;
+        background: #A78BFA;
         border-radius: 50%;
         animation: typing 1.4s infinite ease-in-out both;
     }
-
-    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
     @keyframes typing {
-        0%, 80%, 100% { transform: scale(0); }
-        40% { transform: scale(1); }
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+        0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+        40% { transform: scale(1); opacity: 1; }
     }
 </style>
 @endsection
 
 @section('content')
-<div class="chat-layout w-full max-w-4xl mx-auto bg-darkbg shadow-2xl md:border-x border-lavender-500/10">
-
+<div class="chat-grid w-full max-w-4xl mx-auto bg-darkbg md:border-x border-white/5">
     <!-- Header -->
-    <header class="chat-header z-20 sticky top-0 flex items-center justify-between px-4 py-3">
+    <header class="glass sticky top-0 z-30 px-4 py-3 sm:px-6 flex items-center justify-between">
         <div class="flex items-center gap-3">
+            <a href="{{ route('dashboard') }}" class="p-2 hover:bg-white/5 rounded-xl transition-colors md:hidden">
+                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </a>
             <div class="relative">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-lavender-400 to-lavender-600 flex items-center justify-center text-white font-bold shadow-md">
+                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-lavender-400 to-indigo-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
                     {{ strtoupper(substr($otherUser->getDisplayName(), 0, 1)) }}
                 </div>
-                <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#1E1B2E] rounded-full"></div>
+                <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-darkbg rounded-full"></div>
             </div>
-            <div class="flex flex-col">
-                <h1 class="text-white font-semibold leading-tight">{{ $otherUser->getDisplayName() }}</h1>
-                <div class="text-[0.7rem] text-lavender-300/80 flex items-center gap-1.5 mt-0.5">
-                    @if($otherUser->age)<span>{{ $otherUser->age }}</span>&bull;@endif
-                    <span class="capitalize">{{ $otherUser->gender }}</span>
-                    &bull;
-                    <span class="flex items-center"><svg class="w-2.5 h-2.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>{{ $otherUser->location }}</span>
-                </div>
+            <div>
+                <h1 class="text-sm sm:text-base font-bold text-white leading-tight">{{ $otherUser->getDisplayName() }}</h1>
+                <p class="text-[10px] sm:text-xs text-gray-500 font-medium flex items-center gap-1 uppercase tracking-wider">
+                    {{ $otherUser->age ? $otherUser->age . ' • ' : '' }}{{ $otherUser->gender }} • {{ $otherUser->location }}
+                </p>
             </div>
         </div>
-
+        
         <form action="{{ route('chat.end', $session->id) }}" method="POST">
             @csrf
-            <button type="submit" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                <span class="hidden sm:inline">End Chat</span>
+            <button type="submit" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-bold transition-all">
+                End Chat
             </button>
         </form>
     </header>
 
-    <!-- Chat Messages -->
-    <main id="chat-messages" class="chat-container">
-        <!-- System Message / Welcome -->
-        <div class="flex justify-center my-6">
-            <div class="bg-panel border border-lavender-500/10 rounded-2xl px-6 py-4 text-center max-w-sm shadow-sm">
-                <div class="w-12 h-12 bg-lavender-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <svg class="w-6 h-6 text-lavender-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                </div>
-                <p class="text-white font-medium text-sm mb-1">Chat connected securely</p>
-                <p class="text-xs text-lavender-300/60">Say hi to {{ $otherUser->getDisplayName() }}! Remember to stay anonymous and be respectful.</p>
+    <!-- Messages -->
+    <main id="chat-messages" class="messages-container overflow-y-auto px-4 py-6 flex flex-col gap-4">
+        <div class="flex flex-col items-center gap-4 my-8 opacity-50">
+            <div class="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center">
+                <svg class="w-8 h-8 text-lavender-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <div class="text-center">
+                <p class="text-xs font-bold text-white uppercase tracking-[0.2em]">Secure Connection</p>
+                <p class="text-[10px] text-gray-500 mt-1">Chat is anonymous and end-to-end encrypted</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Typing & Input -->
+    <footer class="z-30 p-4 sm:p-6 bg-darkbg/80 backdrop-blur-xl">
+        <div id="typing-indicator" class="hidden px-4 mb-3">
+            <div class="flex items-center gap-1.5 bg-panel border border-white/5 rounded-full px-4 py-2 w-fit">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
             </div>
         </div>
 
-        <!-- Messages will be injected here via JS -->
-    </main>
-
-    <!-- Typing Indicator (Hidden by default) -->
-    <div id="typing-indicator" class="px-4 pb-2 hidden">
-        <div class="typing-bubble">
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-        </div>
-    </div>
-
-    <!-- Input Area -->
-    <footer class="input-area z-20">
-        <form id="message-form" class="relative max-w-4xl mx-auto w-full">
+        <form id="message-form" class="relative group">
             @csrf
-            <input type="text" id="message-input" name="message"
-                class="w-full chat-input text-base"
-                placeholder="Message..." autocomplete="off">
-            <button type="submit" id="send-btn" class="send-btn" disabled>
-                <svg class="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+            <input type="text" id="message-input" name="message" 
+                class="w-full bg-panel border border-white/10 rounded-2xl sm:rounded-[2rem] px-5 py-4 sm:py-5 pr-14 focus:outline-none focus:border-lavender-500/50 transition-all text-sm sm:text-base placeholder-gray-600"
+                placeholder="Type a message..." autocomplete="off">
+            <button type="submit" id="send-btn" disabled 
+                class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-lavender-600 rounded-xl sm:rounded-2xl flex items-center justify-center text-white disabled:opacity-30 disabled:grayscale transition-all hover:scale-105 active:scale-95">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
             </button>
         </form>
     </footer>
@@ -247,24 +133,22 @@
     const sendBtn = document.getElementById('send-btn');
     let typingTimeout = null;
 
-    // Load existing messages
     loadMessages();
 
-    // Scroll to bottom helper
     function scrollToBottom() {
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+        chatContainer.scrollTo({
+            top: chatContainer.scrollHeight,
+            behavior: 'smooth'
+        });
     }
 
-    // Input change handler for send button state
     messageInput.addEventListener('input', (e) => {
         sendBtn.disabled = e.target.value.trim() === '';
-
         sendTyping(true);
         clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => stopTyping(), 1000);
+        typingTimeout = setTimeout(() => stopTyping(), 1500);
     });
 
-    // Listen for new messages
     Echo.private('chat.session.' + sessionId)
         .listen('.chat.message', (data) => {
             if (data.sender_id !== userId) {
@@ -278,21 +162,16 @@
             }
         });
 
-    // Send message
     document.getElementById('message-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const message = messageInput.value.trim();
-
         if (!message) return;
 
-        // Optimistically add message
         addMessage('You', message, true);
-
         messageInput.value = '';
         sendBtn.disabled = true;
-        messageInput.focus();
         stopTyping();
-
+        
         try {
             await fetch(`/chat/${sessionId}/send`, {
                 method: 'POST',
@@ -302,62 +181,38 @@
                 },
                 body: JSON.stringify({ message })
             });
-        } catch (error) {
-            console.error('Error sending message:', error);
-            // Optionally handle failed send
-        }
+        } catch (error) { console.error(error); }
     });
 
     async function sendTyping(isTyping) {
         try {
             await fetch(`/chat/${sessionId}/typing`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                 body: JSON.stringify({ typing: isTyping })
             });
         } catch (error) {}
     }
 
-    function stopTyping() {
-        sendTyping(false);
-    }
+    function stopTyping() { sendTyping(false); }
 
     async function loadMessages() {
         try {
             const response = await fetch(`/chat/${sessionId}/messages`);
             const data = await response.json();
-
-            data.messages.forEach(msg => {
-                const isSent = msg.sender_id === userId;
-                addMessage(msg.sender_name, msg.message, isSent, false); // false = don't animate initial load
-            });
+            data.messages.forEach(msg => addMessage(msg.sender_name, msg.message, msg.sender_id === userId, false));
             scrollToBottom();
-        } catch (error) {
-            console.error('Error loading messages:', error);
-        }
+        } catch (error) { console.error(error); }
     }
 
     function addMessage(name, message, isSent, animate = true) {
         const div = document.createElement('div');
-        div.className = `message-wrapper ${isSent ? 'sent' : 'received'}`;
-        if (!animate) {
-            div.style.animation = 'none';
-        }
-
+        div.className = `bubble ${isSent ? 'bubble-sent' : 'bubble-received'}`;
+        if (!animate) div.style.animation = 'none';
+        
         const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-        div.innerHTML = `
-            <div class="message-bubble">
-                ${message}
-            </div>
-            <div class="message-meta">
-                ${isSent ? `<span>${time}</span><svg class="w-3 h-3 text-lavender-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>` : `<span>${time}</span>`}
-            </div>
-        `;
-
+        div.innerHTML = `<div class="font-bold text-[10px] mb-1 opacity-50 uppercase tracking-tighter">${isSent ? 'You' : name} • ${time}</div><div>${message}</div>`;
+        
         chatContainer.appendChild(div);
         scrollToBottom();
     }

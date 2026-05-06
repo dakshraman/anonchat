@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'AnonymousChat')</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -24,11 +25,9 @@
                             900: '#4c1d95',
                             950: '#2e1065',
                         },
-                        primary: '#a78bfa',
-                        secondary: '#c4b5fd',
-                        darkbg: '#13111C',
-                        panel: '#1E1B2E',
-                        panelhover: '#2A2640',
+                        darkbg: '#0F0E17',
+                        panel: '#1A1826',
+                        panelhover: '#242133',
                     },
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -38,18 +37,36 @@
         }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    @yield('styles')
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        /* Custom Scrollbar for a more app-like feel */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #2A2640; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #4c1d95; }
+        body { 
+            font-family: 'Inter', sans-serif;
+            background-color: #0F0E17;
+            color: #F9FAFB;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+        }
+        html {
+            height: -webkit-fill-available;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2D2A45; border-radius: 10px; }
+        
+        /* Glass Effect */
+        .glass {
+            background: rgba(26, 24, 38, 0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(167, 139, 250, 0.1);
+        }
     </style>
+    @yield('styles')
 </head>
-<body class="bg-darkbg text-gray-100 min-h-screen antialiased selection:bg-lavender-500 selection:text-white flex flex-col">
+<body class="antialiased selection:bg-lavender-500 selection:text-white overflow-x-hidden">
     @yield('content')
+    
     <script src="https://cdn.jsdelivr.net/npm/echo@1.22.0/dist/echo.min.js"></script>
     <script>
         window.Echo = new Echo({
