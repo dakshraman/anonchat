@@ -19,6 +19,9 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copy application files first
 COPY . .
 
+# Create .env from example if not exists
+RUN cp -n .env.example .env || true
+
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
@@ -26,7 +29,7 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs
 
 # Generate application key
-RUN cp .env.example .env && php artisan key:generate
+RUN php artisan key:generate
 
 # Set permissions
 RUN chmod -R 755 /var/www/bootstrap/cache \
