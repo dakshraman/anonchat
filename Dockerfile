@@ -31,16 +31,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install
 # Generate application key
 RUN php artisan key:generate
 
-# Create SQLite database if using sqlite
-RUN touch /var/www/database/database.sqlite
-
-# Run migrations
-RUN php artisan migrate --force
-
 # Set permissions
 RUN chmod -R 755 /var/www/bootstrap/cache \
-    && chmod -R 755 /var/www/storage \
-    && chmod 666 /var/www/database/database.sqlite
+    && chmod -R 755 /var/www/storage
 
 # Expose port
 EXPOSE 10000
