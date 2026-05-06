@@ -37,6 +37,8 @@ services:
         fromDatabase:
           name: anonchat-db
           property: password
+      - key: BROADCAST_CONNECTION
+        value: reverb
       - key: REVERB_APP_ID
         generateValue: true
       - key: REVERB_APP_KEY
