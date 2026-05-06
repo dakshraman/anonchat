@@ -29,30 +29,31 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install
 RUN npm install && npm run build
 
 # Ensure SQLite database exists and is writable
-RUN mkdir -p database && touch database/database.sqlite
+RUN mkdir -p database && touch database/database.sqlite && chmod 666 database/database.sqlite
 
 # Set permissions
 RUN chmod -R 777 /var/www/storage /var/www/bootstrap/cache /var/www/database \
     && chown -R www-data:www-data /var/www
 
-# Expose ports
-EXPOSE 10000
+# Expose Reverb port
 EXPOSE 8080
 
 # Start script
 COPY --chmod=755 <<EOF /usr/local/bin/start.sh
 #!/bin/sh
-# Clear caches
+# Clear and cache settings
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
 
-# Run migrations (This creates tables in SQLite)
+# Run migrations
 php artisan migrate --force
 
-# Start Reverb and Laravel
+# Start Reverb in the background
 php artisan reverb:start --host=0.0.0.0 --port=8080 &
-php artisan serve --host=0.0.0.0 --port=10000
+
+# Start Laravel on the port Render provides
+php artisan serve --host=0.0.0.0 --port=\${PORT:-10000}
 EOF
 
 CMD ["/usr/local/bin/start.sh"]
