@@ -71,9 +71,10 @@
     <script>
         window.Echo = new Echo({
             broadcaster: 'reverb',
-            wsHost: '127.0.0.1',
-            wsPort: 8080,
-            wssPort: 8080,
+            wsHost: window.location.hostname,
+            wsPort: {{ config('reverb.apps.common.port', 8080) }},
+            wssPort: {{ config('reverb.apps.common.port', 8080) }},
+            forceTLS: window.location.protocol === 'https:',
             enabledTransports: ['ws', 'wss'],
             auth: {
                 headers: {
