@@ -10,7 +10,9 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     unzip \
     libpq-dev \
-    && docker-php-ext-install pdo pdo_mysql pdo_sqlite zip
+    libsqlite3-dev \
+    sqlite3 \
+    && docker-php-ext-install pdo pdo_mysql pdo_sqlite pdo_pgsql zip
 
 # Install Node.js for frontend assets
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
