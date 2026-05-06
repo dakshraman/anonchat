@@ -7,7 +7,6 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     libpng-dev \
-    oniguruma \
     libzip-dev \
     unzip \
     libpq-dev \
