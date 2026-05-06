@@ -72,8 +72,8 @@
         window.Echo = new Echo({
             broadcaster: 'reverb',
             wsHost: window.location.hostname,
-            wsPort: {{ config('reverb.apps.common.port', 8080) }},
-            wssPort: {{ config('reverb.apps.common.port', 8080) }},
+            wsPort: {{ config('reverb.servers.reverb.port', 8080) }},
+            wssPort: {{ config('reverb.servers.reverb.port', 8080) }},
             forceTLS: window.location.protocol === 'https:',
             enabledTransports: ['ws', 'wss'],
             auth: {

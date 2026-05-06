@@ -15,15 +15,19 @@ services:
           property: externalDatabaseUrl
       - key: BROADCAST_CONNECTION
         value: reverb
-      - key: REVERB_APP_ID
-        generateValue: true
       - key: REVERB_APP_KEY
         generateValue: true
       - key: REVERB_APP_SECRET
         generateValue: true
-      - key: REVERB_PORT
+      - key: REVERB_APP_ID
+        generateValue: true
+      - key: REVERB_SERVER_PORT
         value: "8080"
       - key: REVERB_SCHEME
         value: "https"
+      - key: REVERB_HOST
+        value: "anonchat.onrender.com"
+      - key: REVERB_SERVER_HOST
+        value: "0.0.0.0"
       - key: APP_KEY
         generateValue: true
