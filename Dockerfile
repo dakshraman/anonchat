@@ -1,5 +1,6 @@
-FROM php:8.4-cli
+FROM dunglas/frankenphp:1.4-php8.4
 
+# Set working directory
 WORKDIR /var/www
 
 # Install system dependencies
@@ -15,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
-RUN docker-php-ext-install bcmath zip pcntl posix pdo_sqlite pdo_pgsql
+RUN install-php-extensions bcmath zip pcntl posix pdo_sqlite pdo_pgsql intl gd
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -30,26 +31,30 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs
 RUN npm install && npm run build
 
+# Set permissions
+RUN chown -R www-data:www-data storage bootstrap/cache
+
 # Expose ports
-EXPOSE 10000
 EXPOSE 8080
+EXPOSE 10000
 
 # Create supervisord config
 RUN mkdir -p /etc/supervisor/conf.d
 
-# Start script with supervisord
+# Start script
 COPY --chmod=755 <<'EOF' /usr/local/bin/start.sh
 #!/bin/sh
 
 echo "Starting deployment setup..."
 
-# Generate .env file
+# Generate .env file if APP_KEY is provided
+if [ ! -z "$APP_KEY" ]; then
 cat << ENV_EOF > /var/www/.env
 APP_NAME="AnonymousChat"
 APP_ENV=production
 APP_KEY="${APP_KEY}"
 APP_DEBUG=false
-APP_URL="${RENDER_EXTERNAL_URL:-https://anonchat-90ql.onrender.com}"
+APP_URL="${RENDER_EXTERNAL_URL}"
 
 DB_CONNECTION=pgsql
 DB_URL="${DB_URL}"
@@ -63,17 +68,17 @@ REVERB_APP_ID="${REVERB_APP_ID}"
 REVERB_APP_KEY="${REVERB_APP_KEY}"
 REVERB_APP_SECRET="${REVERB_APP_SECRET}"
 REVERB_HOST="${REVERB_HOST}"
-REVERB_PORT="${REVERB_SERVER_PORT:-8080}"
-REVERB_SCHEME="${REVERB_SCHEME:-https}"
+REVERB_PORT=443
+REVERB_SCHEME=https
 REVERB_SERVER_HOST="0.0.0.0"
-REVERB_SERVER_PORT="${REVERB_SERVER_PORT:-8080}"
+REVERB_SERVER_PORT=8080
 ENV_EOF
+fi
 
-echo ".env file generated."
+# Run migrations
+php artisan migrate --force
 
-echo "Starting services with supervisord..."
-
-# Start supervisord
+echo "Starting services..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
 EOF
 
@@ -90,16 +95,20 @@ command=php artisan reverb:start --host=0.0.0.0 --port=8080
 directory=/var/www
 autostart=true
 autorestart=true
-stdout_logfile=/var/log/supervisor/reverb.log
-stderr_logfile=/var/log/supervisor/reverb_error.log
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
 
-[program:laravel]
-command=php artisan serve --host=0.0.0.0 --port=10000
+[program:php-app]
+command=frankenphp run --config /etc/caddy/Caddyfile --listen :10000
 directory=/var/www
 autostart=true
 autorestart=true
-stdout_logfile=/var/log/supervisor/laravel.log
-stderr_logfile=/var/log/supervisor/laravel_error.log
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
 EOF
 
-CMD ["/usr/local/bin/start.sh"]
+ENTRYPOINT ["/usr/local/bin/start.sh"]

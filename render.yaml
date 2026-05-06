@@ -2,6 +2,7 @@ services:
   - name: anonchat
     type: web
     runtime: docker
+    plan: free
     envVars:
       - key: APP_ENV
         value: production
@@ -12,7 +13,7 @@ services:
       - key: DB_URL
         fromDatabase:
           name: anonchatdb
-          property: externalDatabaseUrl
+          property: connectionString
       - key: BROADCAST_CONNECTION
         value: reverb
       - key: REVERB_APP_KEY
@@ -21,13 +22,19 @@ services:
         generateValue: true
       - key: REVERB_APP_ID
         generateValue: true
+      - key: REVERB_HOST
+        fromGroup:
+          name: anonchat
+          property: hostname
+      - key: REVERB_SERVER_HOST
+        value: "0.0.0.0"
       - key: REVERB_SERVER_PORT
         value: "8080"
       - key: REVERB_SCHEME
         value: "https"
-      - key: REVERB_HOST
-        value: "anonchat.onrender.com"
-      - key: REVERB_SERVER_HOST
-        value: "0.0.0.0"
       - key: APP_KEY
         generateValue: true
+
+databases:
+  - name: anonchatdb
+    plan: free
