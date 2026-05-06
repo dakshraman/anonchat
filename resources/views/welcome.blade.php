@@ -70,13 +70,13 @@
                 </h2>
                 <form action="{{ route('guest') }}" method="POST" class="space-y-4">
                     @csrf
-                    <input type="text" name="name" 
-                        class="w-full input-glass rounded-2xl px-5 py-4 focus:outline-none transition-all" 
+                    <input type="text" name="name"
+                        class="w-full input-glass rounded-2xl px-5 py-4 focus:outline-none transition-all"
                         placeholder="Choose a nickname (Optional)">
-                    
+
                     <div class="grid grid-cols-2 gap-4">
-                        <input type="number" name="age" 
-                            class="w-full input-glass rounded-2xl px-5 py-4 focus:outline-none transition-all" 
+                        <input type="number" name="age"
+                            class="w-full input-glass rounded-2xl px-5 py-4 focus:outline-none transition-all"
                             placeholder="Age">
                         <select name="gender" required class="w-full input-glass rounded-2xl px-5 py-4 focus:outline-none transition-all appearance-none bg-panel">
                             <option value="" disabled selected>I am...</option>
