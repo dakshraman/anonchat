@@ -8,45 +8,49 @@
         overscroll-behavior-y: none;
         overflow: hidden;
     }
-    .chat-grid {
+    .chat-wrapper {
+        height: 100vh;
         height: 100dvh;
-        display: grid;
-        grid-template-rows: auto 1fr auto;
+        display: flex;
+        flex-direction: column;
     }
-    .messages-container::-webkit-scrollbar { width: 4px; }
-    .messages-container::-webkit-scrollbar-track { background: transparent; }
-    .messages-container::-webkit-scrollbar-thumb { background: rgba(167, 139, 250, 0.1); border-radius: 10px; }
-    
+    .messages-container {
+        flex: 1;
+        overflow-y: auto;
+    }
     .bubble {
         max-width: 80%;
-        padding: 12px 16px;
-        border-radius: 20px;
+        padding: 12px 18px;
+        border-radius: 1.5rem;
         font-size: 0.95rem;
         line-height: 1.5;
         position: relative;
-        animation: bubble-in 0.2s ease-out forwards;
+        animation: bubble-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
     }
     .bubble-sent {
-        background: linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%);
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.8) 0%, rgba(99, 102, 241, 0.8) 100%);
         color: white;
         border-bottom-right-radius: 4px;
         align-self: flex-end;
+        box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
     }
     .bubble-received {
-        background: #242133;
-        color: #E2E8F0;
+        background: rgba(255, 255, 255, 0.08);
+        color: #f3f4f6;
         border-bottom-left-radius: 4px;
         align-self: flex-start;
-        border: 1px solid rgba(167, 139, 250, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
     @keyframes bubble-in {
-        from { opacity: 0; transform: translateY(10px) scale(0.95); }
+        from { opacity: 0; transform: translateY(20px) scale(0.9); }
         to { opacity: 1; transform: translateY(0) scale(1); }
     }
     .typing-dot {
         width: 6px;
         height: 6px;
-        background: #A78BFA;
+        background: #a78bfa;
         border-radius: 50%;
         animation: typing 1.4s infinite ease-in-out both;
     }
@@ -60,72 +64,80 @@
 @endsection
 
 @section('content')
-<div class="chat-grid w-full max-w-4xl mx-auto bg-darkbg md:border-x border-white/5">
-    <!-- Header -->
-    <header class="glass sticky top-0 z-30 px-4 py-3 sm:px-6 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('dashboard') }}" class="p-2 hover:bg-white/5 rounded-xl transition-colors md:hidden">
-                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-            </a>
-            <div class="relative">
-                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-lavender-400 to-indigo-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                    {{ strtoupper(substr($otherUser->getDisplayName(), 0, 1)) }}
-                </div>
-                <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-darkbg rounded-full"></div>
-            </div>
-            <div>
-                <h1 class="text-sm sm:text-base font-bold text-white leading-tight">{{ $otherUser->getDisplayName() }}</h1>
-                <p class="text-[10px] sm:text-xs text-gray-500 font-medium flex items-center gap-1 uppercase tracking-wider">
-                    {{ $otherUser->age ? $otherUser->age . ' • ' : '' }}{{ $otherUser->gender }} • {{ $otherUser->location }}
-                </p>
+<div class="container-fluid p-0">
+    <div class="row g-0 justify-content-center">
+        <div class="col-12 col-lg-8 col-xl-6">
+            <div class="chat-wrapper glass-card rounded-0 border-top-0 border-bottom-0 shadow-none" style="background: rgba(11, 10, 16, 0.6);">
+                <!-- Header -->
+                <header class="p-3 border-bottom border-white border-opacity-10 d-flex align-items-center justify-content-between sticky-top bg-dark bg-opacity-25 backdrop-blur-xl">
+                    <div class="d-flex align-items-center gap-3">
+                        <a href="{{ route('dashboard') }}" wire:navigate class="btn glass-button-secondary p-2 d-lg-none">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        </a>
+                        <div class="position-relative">
+                            <div class="glass-card d-flex align-items-center justify-content-center text-white fw-bold" style="width: 45px; height: 45px; border-radius: 1rem; background: linear-gradient(135deg, #a78bfa, #6366f1);">
+                                {{ strtoupper(substr($otherUser->getDisplayName(), 0, 1)) }}
+                            </div>
+                            <div class="position-absolute bottom-0 end-0 bg-success border border-2 border-dark rounded-circle" style="width: 12px; height: 12px;"></div>
+                        </div>
+                        <div>
+                            <h1 class="h6 fw-bold text-white mb-0">{{ $otherUser->getDisplayName() }}</h1>
+                            <p class="small text-secondary mb-0" style="font-size: 0.7rem;">
+                                {{ $otherUser->age ? $otherUser->age . ' • ' : '' }}{{ $otherUser->gender }} • {{ $otherUser->location }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <form action="{{ route('chat.end', $session->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-danger btn-sm px-3 rounded-3 fw-bold">
+                            End Chat
+                        </button>
+                    </form>
+                </header>
+
+                <!-- Messages -->
+                <main id="chat-messages" class="messages-container p-4 d-flex flex-column gap-3">
+                    <div class="text-center py-5 opacity-50">
+                        <div class="glass-card d-inline-flex p-3 rounded-4 mb-3">
+                            <svg class="text-lavender" width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        </div>
+                        <p class="small fw-bold text-white text-uppercase tracking-widest mb-1">Secure Connection</p>
+                        <p class="small text-secondary mb-0">End-to-end encrypted</p>
+                    </div>
+                </main>
+
+                <!-- Footer -->
+                <footer class="p-3 p-md-4">
+                    <div id="typing-indicator" class="d-none mb-3 px-2">
+                        <div class="d-inline-flex align-items-center gap-2 bg-white bg-opacity-5 border border-white border-opacity-10 rounded-pill px-3 py-2">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+
+                    <form id="message-form" class="position-relative">
+                        @csrf
+                        <input type="text" id="message-input" name="message" 
+                            class="form-control glass-input w-100 py-3 pe-5 fs-6 shadow-lg"
+                            placeholder="Type a message..." autocomplete="off" style="border-radius: 1.5rem;">
+                        <button type="submit" id="send-btn" disabled 
+                            class="btn glass-button position-absolute end-0 top-50 translate-middle-y me-2 d-flex align-items-center justify-content-center p-2"
+                            style="width: 42px; height: 42px; border-radius: 1rem;">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+                        </button>
+                    </form>
+                </footer>
             </div>
         </div>
-        
-        <form action="{{ route('chat.end', $session->id) }}" method="POST">
-            @csrf
-            <button type="submit" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-bold transition-all">
-                End Chat
-            </button>
-        </form>
-    </header>
-
-    <!-- Messages -->
-    <main id="chat-messages" class="messages-container overflow-y-auto px-4 py-6 flex flex-col gap-4">
-        <div class="flex flex-col items-center gap-4 my-8 opacity-50">
-            <div class="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center">
-                <svg class="w-8 h-8 text-lavender-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-            </div>
-            <div class="text-center">
-                <p class="text-xs font-bold text-white uppercase tracking-[0.2em]">Secure Connection</p>
-                <p class="text-[10px] text-gray-500 mt-1">Chat is anonymous and end-to-end encrypted</p>
-            </div>
-        </div>
-    </main>
-
-    <!-- Typing & Input -->
-    <footer class="z-30 p-4 sm:p-6 bg-darkbg/80 backdrop-blur-xl">
-        <div id="typing-indicator" class="hidden px-4 mb-3">
-            <div class="flex items-center gap-1.5 bg-panel border border-white/5 rounded-full px-4 py-2 w-fit">
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-            </div>
-        </div>
-
-        <form id="message-form" class="relative group">
-            @csrf
-            <input type="text" id="message-input" name="message" 
-                class="w-full bg-panel border border-white/10 rounded-2xl sm:rounded-[2rem] px-5 py-4 sm:py-5 pr-14 focus:outline-none focus:border-lavender-500/50 transition-all text-sm sm:text-base placeholder-gray-600"
-                placeholder="Type a message..." autocomplete="off">
-            <button type="submit" id="send-btn" disabled 
-                class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-lavender-600 rounded-xl sm:rounded-2xl flex items-center justify-center text-white disabled:opacity-30 disabled:grayscale transition-all hover:scale-105 active:scale-95">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
-            </button>
-        </form>
-    </footer>
+    </div>
 </div>
 
 <script>
+    // Note: Livewire scripts will be re-run on wire:navigate.
+    // If you have persistent JS state, handle it accordingly.
+    
     const sessionId = {{ $session->id }};
     const userId = {{ auth()->id() }};
     const chatContainer = document.getElementById('chat-messages');
@@ -136,53 +148,62 @@
     loadMessages();
 
     function scrollToBottom() {
+        if (!chatContainer) return;
         chatContainer.scrollTo({
             top: chatContainer.scrollHeight,
             behavior: 'smooth'
         });
     }
 
-    messageInput.addEventListener('input', (e) => {
-        sendBtn.disabled = e.target.value.trim() === '';
-        sendTyping(true);
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => stopTyping(), 1500);
-    });
-
-    Echo.private('chat.session.' + sessionId)
-        .listen('.chat.message', (data) => {
-            if (data.sender_id !== userId) {
-                addMessage(data.sender_name, data.message, false);
-                markTyping(false);
-            }
-        })
-        .listen('.user.typing', (data) => {
-            if (data.user_id !== userId) {
-                markTyping(data.is_typing);
-            }
+    if (messageInput) {
+        messageInput.addEventListener('input', (e) => {
+            sendBtn.disabled = e.target.value.trim() === '';
+            sendTyping(true);
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => stopTyping(), 1500);
         });
+    }
 
-    document.getElementById('message-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const message = messageInput.value.trim();
-        if (!message) return;
-
-        addMessage('You', message, true);
-        messageInput.value = '';
-        sendBtn.disabled = true;
-        stopTyping();
-        
-        try {
-            await fetch(`/chat/${sessionId}/send`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ message })
+    // Re-initialize Echo if needed or ensure it's global
+    if (window.Echo) {
+        window.Echo.private('chat.session.' + sessionId)
+            .listen('.chat.message', (data) => {
+                if (data.sender_id !== userId) {
+                    addMessage(data.sender_name, data.message, false);
+                    markTyping(false);
+                }
+            })
+            .listen('.user.typing', (data) => {
+                if (data.user_id !== userId) {
+                    markTyping(data.is_typing);
+                }
             });
-        } catch (error) { console.error(error); }
-    });
+    }
+
+    const messageForm = document.getElementById('message-form');
+    if (messageForm) {
+        messageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            addMessage('You', message, true);
+            messageInput.value = '';
+            sendBtn.disabled = true;
+            stopTyping();
+            
+            try {
+                await fetch(`/chat/${sessionId}/send`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ message })
+                });
+            } catch (error) { console.error(error); }
+        });
+    }
 
     async function sendTyping(isTyping) {
         try {
@@ -206,12 +227,13 @@
     }
 
     function addMessage(name, message, isSent, animate = true) {
+        if (!chatContainer) return;
         const div = document.createElement('div');
         div.className = `bubble ${isSent ? 'bubble-sent' : 'bubble-received'}`;
         if (!animate) div.style.animation = 'none';
         
         const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        div.innerHTML = `<div class="font-bold text-[10px] mb-1 opacity-50 uppercase tracking-tighter">${isSent ? 'You' : name} • ${time}</div><div>${message}</div>`;
+        div.innerHTML = `<div class="fw-bold text-uppercase opacity-50 mb-1" style="font-size: 0.6rem; letter-spacing: 0.05em;">${isSent ? 'You' : name} • ${time}</div><div>${message}</div>`;
         
         chatContainer.appendChild(div);
         scrollToBottom();
@@ -219,11 +241,12 @@
 
     function markTyping(isTyping) {
         const indicator = document.getElementById('typing-indicator');
+        if (!indicator) return;
         if (isTyping) {
-            indicator.classList.remove('hidden');
+            indicator.classList.remove('d-none');
             scrollToBottom();
         } else {
-            indicator.classList.add('hidden');
+            indicator.classList.add('d-none');
         }
     }
 </script>

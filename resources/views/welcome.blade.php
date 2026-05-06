@@ -2,117 +2,84 @@
 
 @section('title', 'AnonymousChat - Connect with Strangers')
 
-@section('styles')
-<style>
-    .hero-gradient {
-        background: linear-gradient(135deg, #A78BFA 0%, #C4B5FD 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    .btn-primary {
-        background: linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%);
-        box-shadow: 0 4px 14px 0 rgba(124, 58, 237, 0.3);
-        transition: all 0.3s ease;
-    }
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px 0 rgba(124, 58, 237, 0.4);
-    }
-    .input-glass {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(167, 139, 250, 0.2);
-        color: white;
-    }
-    .input-glass:focus {
-        border-color: #A78BFA;
-        background: rgba(255, 255, 255, 0.06);
-    }
-</style>
-@endsection
-
 @section('content')
-<div class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 relative">
-    <!-- Ambient Background -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div class="absolute -top-24 -left-24 w-96 h-96 bg-lavender-600/10 rounded-full blur-[100px]"></div>
-        <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-lavender-800/10 rounded-full blur-[100px]"></div>
-    </div>
-
-    <div class="w-full max-w-5xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+<div class="container min-vh-100 d-flex align-items-center justify-content-center p-4">
+    <div class="row w-100 align-items-center gy-5">
         <!-- Hero Section -->
-        <div class="text-center lg:text-left space-y-6">
-            <div class="inline-block p-4 rounded-3xl glass mb-4">
-                <img src="{{ asset('favicon.png') }}" alt="Logo" class="w-16 h-16 sm:w-20 sm:h-20 object-contain">
+        <div class="col-lg-7 text-center text-lg-start">
+            <div class="glass-card d-inline-block p-4 mb-4" style="border-radius: 2.5rem;">
+                <img src="{{ asset('favicon.png') }}" alt="Logo" style="width: 80px; height: 80px; object-fit: contain;">
             </div>
-            <h1 class="text-4xl sm:text-6xl font-black tracking-tight leading-none">
-                <span class="hero-gradient">AnonymousChat</span>
+            <h1 class="display-2 fw-800 text-white mb-3" style="font-weight: 800; line-height: 1.1;">
+                <span style="background: linear-gradient(to right, #a78bfa, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Connect</span><br>
+                Anonymously.
             </h1>
-            <p class="text-lg sm:text-xl text-gray-400 max-w-md mx-auto lg:mx-0 leading-relaxed font-medium">
-                The most secure way to connect with strangers worldwide. Fully anonymous, completely real-time.
+            <p class="lead text-secondary-emphasis mb-4 fs-4 fw-medium" style="max-width: 500px;">
+                The most secure way to connect with strangers worldwide. <span style="color: #c4b5fd;">Fully anonymous, real-time.</span>
             </p>
-            <div class="hidden lg:flex items-center gap-4 text-sm text-gray-500">
-                <div class="flex items-center gap-1">
-                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
+            <div class="d-none d-lg-flex align-items-center gap-4 text-secondary text-uppercase fw-bold small tracking-widest">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-success" style="width: 10px; height: 10px; box-shadow: 0 0 10px rgba(34,197,94,0.5);"></div>
                     <span>1,240 Online</span>
                 </div>
                 <span>•</span>
-                <span>Real-time Matching</span>
+                <span>End-to-End Encrypted</span>
             </div>
         </div>
 
         <!-- Forms Container -->
-        <div class="space-y-6 w-full max-w-md mx-auto">
-            <!-- Guest Form -->
-            <div class="glass p-6 sm:p-8 rounded-[2.5rem] shadow-2xl">
-                <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-lavender-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <div class="col-lg-5">
+            <div class="glass-card p-4 p-md-5" style="border-radius: 3rem; position: relative;">
+                <h2 class="h3 fw-bold text-white mb-4 d-flex align-items-center gap-2">
+                    <div class="rounded-3 bg-white bg-opacity-10 d-flex align-items-center justify-center p-2" style="width: 40px; height: 40px;">
+                        <svg class="text-lavender" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
                     Quick Start
                 </h2>
-                <form action="{{ route('guest') }}" method="POST" class="space-y-4">
+                
+                <form action="{{ route('guest') }}" method="POST">
                     @csrf
-                    <input type="text" name="name"
-                        class="w-full input-glass rounded-2xl px-5 py-4 focus:outline-none transition-all"
-                        placeholder="Choose a nickname (Optional)">
+                    <div class="mb-3">
+                        <input type="text" name="name" class="form-control glass-input w-100" placeholder="Choose a nickname (Optional)">
+                    </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <input type="number" name="age"
-                            class="w-full input-glass rounded-2xl px-5 py-4 focus:outline-none transition-all"
-                            placeholder="Age">
-                        <select name="gender" required class="w-full input-glass rounded-2xl px-5 py-4 focus:outline-none transition-all appearance-none bg-panel">
-                            <option value="" disabled selected>I am...</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                            <option value="other">Other</option>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <input type="number" name="age" class="form-control glass-input w-100" placeholder="Age">
+                        </div>
+                        <div class="col-6 position-relative">
+                            <select name="gender" required class="form-select glass-input w-100 appearance-none">
+                                <option value="" disabled selected>I am...</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <select name="target_gender" required class="form-select glass-input w-100 appearance-none">
+                            <option value="any">Chat with anyone</option>
+                            <option value="male">Men</option>
+                            <option value="female">Women</option>
+                            <option value="both">Both</option>
                         </select>
                     </div>
 
-                    <select name="target_gender" required class="w-full input-glass rounded-2xl px-5 py-4 focus:outline-none transition-all appearance-none bg-panel">
-                        <option value="any">Chat with anyone</option>
-                        <option value="male">Men</option>
-                        <option value="female">Women</option>
-                        <option value="both">Both</option>
-                    </select>
-
-                    <button type="submit" class="w-full btn-primary text-white font-bold py-4 rounded-2xl text-lg flex items-center justify-center gap-2 group">
-                        <span>Find Partner</span>
-                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    <button type="submit" class="btn glass-button w-100 py-3 fs-5 mb-4">
+                        Find Partner
                     </button>
                 </form>
-            </div>
 
-            <!-- Auth Buttons -->
-            <div class="flex gap-4">
-                <a href="{{ route('register') }}" class="flex-1 glass text-center py-4 rounded-2xl font-semibold hover:bg-white/5 transition-all">Register</a>
-                <a href="{{ route('login') }}" class="flex-1 glass text-center py-4 rounded-2xl font-semibold hover:bg-white/5 transition-all">Login</a>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <a href="{{ route('register') }}" wire:navigate class="btn glass-button-secondary w-100 py-3">Register</a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{{ route('login') }}" wire:navigate class="btn glass-button-secondary w-100 py-3">Login</a>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Footer Mobile Info -->
-    <div class="mt-12 lg:hidden text-center text-sm text-gray-500 flex flex-col items-center gap-2">
-        <div class="flex items-center gap-1.5">
-            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span>Location: <span id="location" class="text-gray-300">Detecting...</span></span>
         </div>
     </div>
 </div>
@@ -121,10 +88,9 @@
     fetch('https://ipapi.co/json/')
         .then(response => response.json())
         .then(data => {
-            document.getElementById('location').textContent = data.city + ', ' + data.country;
+            const locEl = document.getElementById('location-mobile');
+            if(locEl) locEl.textContent = data.city + ', ' + data.country;
         })
-        .catch(() => {
-            document.getElementById('location').textContent = 'Unknown';
-        });
+        .catch(() => {});
 </script>
 @endsection
