@@ -28,32 +28,74 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs
 RUN npm install && npm run build
 
-# Ensure SQLite database exists and is writable
-RUN mkdir -p database && touch database/database.sqlite && chmod 666 database/database.sqlite
-
-# Set permissions
-RUN chmod -R 777 /var/www/storage /var/www/bootstrap/cache /var/www/database \
-    && chown -R www-data:www-data /var/www
-
-# Expose Reverb port
+# Expose ports
+EXPOSE 10000
 EXPOSE 8080
 
 # Start script
-COPY --chmod=755 <<EOF /usr/local/bin/start.sh
+COPY --chmod=755 <<'EOF' /usr/local/bin/start.sh
 #!/bin/sh
-# Clear and cache settings
+
+echo "Starting deployment setup..."
+
+# 1. Generate the perfect .env file dynamically
+cat << ENV_EOF > /var/www/.env
+APP_NAME="AnonymousChat"
+APP_ENV=production
+APP_KEY="base64:7Kscf6uYp8Z5K6m1T440IdIt4poLMP464hNUTCHD5A="
+APP_DEBUG=false
+APP_URL="${RENDER_EXTERNAL_URL:-https://anonchat-90ql.onrender.com}"
+
+DB_CONNECTION=sqlite
+DB_DATABASE=/var/www/database/database.sqlite
+DB_FOREIGN_KEYS=true
+
+SESSION_DRIVER=file
+CACHE_STORE=file
+
+BROADCAST_CONNECTION=reverb
+REVERB_APP_ID=123456
+REVERB_APP_KEY=anonchat_key
+REVERB_APP_SECRET=anonchat_secret
+REVERB_HOST=0.0.0.0
+REVERB_PORT=8080
+REVERB_SCHEME=https
+ENV_EOF
+
+echo ".env file generated successfully."
+
+# 2. Setup SQLite Database
+mkdir -p /var/www/database
+touch /var/www/database/database.sqlite
+
+# 3. Setup required Laravel storage directories
+mkdir -p /var/www/storage/framework/cache/data
+mkdir -p /var/www/storage/framework/sessions
+mkdir -p /var/www/storage/framework/views
+mkdir -p /var/www/storage/logs
+mkdir -p /var/www/bootstrap/cache
+
+# 4. Set extremely permissive permissions to avoid any read/write errors
+chmod -R 777 /var/www/database
+chmod -R 777 /var/www/storage
+chmod -R 777 /var/www/bootstrap/cache
+chown -R www-data:www-data /var/www
+
+# 5. Clear caches
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
 
-# Run migrations
+# 6. Run Migrations
 php artisan migrate --force
 
-# Start Reverb in the background
+echo "Setup complete. Starting servers..."
+
+# 7. Start Reverb (background)
 php artisan reverb:start --host=0.0.0.0 --port=8080 &
 
-# Start Laravel on the port Render provides
-php artisan serve --host=0.0.0.0 --port=\${PORT:-10000}
+# 8. Start Laravel (foreground)
+exec php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
 EOF
 
 CMD ["/usr/local/bin/start.sh"]
