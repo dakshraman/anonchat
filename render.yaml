@@ -1,0 +1,54 @@
+services:
+  - name: anonchat
+    type: web
+    buildCommand: |
+      composer install --no-dev --optimize-autoloader
+      php artisan key:generate
+      php artisan migrate --force
+      npm install && npm run build
+    startCommand: |
+      php artisan serve --host=0.0.0.0 --port=$PORT &
+      php artisan reverb:start --host=0.0.0.0 --port=8080 &
+      wait
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: anonchat-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: anonchat-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: anonchat-db
+          property: name
+      - key: DB_USERNAME
+        fromDatabase:
+          name: anonchat-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: anonchat-db
+          property: password
+      - key: REVERB_APP_ID
+        generateValue: true
+      - key: REVERB_APP_KEY
+        generateValue: true
+      - key: REVERB_APP_SECRET
+        generateValue: true
+      - key: REVERB_PORT
+        value: "8080"
+      - key: REVERB_SCHEME
+        value: "https"
+
+databases:
+  - name: anonchat-db
+    plan: free
+    postgresMajorVersion: 15
