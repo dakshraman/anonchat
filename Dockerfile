@@ -9,12 +9,11 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libzip-dev \
     unzip \
-    libpq-dev \
     libsqlite3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_pgsql pdo_sqlite bcmath zip pcntl posix
+RUN docker-php-ext-install bcmath zip pcntl posix pdo_sqlite
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -29,8 +28,11 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs
 RUN npm install && npm run build
 
+# Ensure SQLite database exists and is writable
+RUN mkdir -p database && touch database/database.sqlite
+
 # Set permissions
-RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache \
+RUN chmod -R 777 /var/www/storage /var/www/bootstrap/cache /var/www/database \
     && chown -R www-data:www-data /var/www
 
 # Expose ports
@@ -45,7 +47,7 @@ php artisan config:clear
 php artisan route:clear
 php artisan view:clear
 
-# Run migrations
+# Run migrations (This creates tables in SQLite)
 php artisan migrate --force
 
 # Start Reverb and Laravel
