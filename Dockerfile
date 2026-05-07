@@ -55,12 +55,11 @@ COPY --chmod=755 <<'EOF' /usr/local/bin/start.sh
 
 echo "Starting deployment setup..."
 
-# Generate .env file if APP_KEY is provided
-if [ ! -z "$APP_KEY" ]; then
+# Generate .env file
 cat << ENV_EOF > /var/www/.env
 APP_NAME="AnonymousChat"
 APP_ENV=production
-APP_KEY="${APP_KEY}"
+APP_KEY="base64:MVOoD4Ph1QSoHq1zlcnSzQ6NFpyWCDmzRJxMepNZLBE="
 APP_DEBUG=false
 APP_URL="${RENDER_EXTERNAL_URL}"
 
@@ -81,7 +80,6 @@ REVERB_SCHEME=https
 REVERB_SERVER_HOST="0.0.0.0"
 REVERB_SERVER_PORT=8080
 ENV_EOF
-fi
 
 # Run migrations
 php artisan migrate --force
