@@ -60,7 +60,7 @@ cat << ENV_EOF > /var/www/.env
 APP_NAME="AnonymousChat"
 APP_ENV=production
 APP_KEY="base64:MVOoD4Ph1QSoHq1zlcnSzQ6NFpyWCDmzRJxMepNZLBE="
-APP_DEBUG=false
+APP_DEBUG=true
 APP_URL="${RENDER_EXTERNAL_URL}"
 
 DB_CONNECTION=pgsql
