@@ -117,7 +117,7 @@ logfile=/var/log/supervisor/supervisord.log
 pidfile=/var/run/supervisord.pid
 
 [program:reverb]
-command=php artisan reverb:start --host=0.0.0.0 --port=8080
+command=php /var/www/artisan reverb:start --host=0.0.0.0 --port=8080
 directory=/var/www
 autostart=true
 autorestart=true
@@ -125,9 +125,10 @@ stdout_logfile=/dev/stdout
 stdout_logfile_maxbytes=0
 stderr_logfile=/dev/stderr
 stderr_logfile_maxbytes=0
+user=root
 
 [program:php-app]
-command=sh -c "exec php -S 0.0.0.0:10000 -t /var/www/public"
+command=sh -c "exec /usr/local/bin/frankenphp run --conf /etc/caddy/Caddyfile"
 directory=/var/www
 autostart=true
 autorestart=true
@@ -135,6 +136,7 @@ stdout_logfile=/dev/stdout
 stdout_logfile_maxbytes=0
 stderr_logfile=/dev/stderr
 stderr_logfile_maxbytes=0
+user=root
 EOF
 
 ENTRYPOINT ["/usr/local/bin/start.sh"]
