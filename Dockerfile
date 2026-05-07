@@ -64,7 +64,7 @@ APP_DEBUG=true
 APP_URL="${RENDER_EXTERNAL_URL}"
 
 DB_CONNECTION=pgsql
-DB_URL="${DB_URL}"
+DB_URL="postgresql://anonchatdb:GtGrLgrnHD44OOqZkOiOwJyyyBnBQqJ1@dpg-d7tnqo1j2pic73bfbhh0-a/anonchatdb"
 DB_FOREIGN_KEYS=true
 
 SESSION_DRIVER=cookie
