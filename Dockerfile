@@ -82,6 +82,26 @@ echo "Starting services..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
 EOF
 
+# Create custom Caddyfile to reverse proxy Reverb
+COPY --chmod=644 <<'EOF' /etc/caddy/Caddyfile
+{
+    frankenphp
+    order php_server before file_server
+}
+
+:10000 {
+    root * /var/www/public
+    
+    @reverb {
+        path /app/* /apps/*
+    }
+    reverse_proxy @reverb 127.0.0.1:8080
+
+    php_server
+    file_server
+}
+EOF
+
 # Supervisor config
 COPY --chmod=755 <<'EOF' /etc/supervisor/conf.d/supervisord.conf
 [supervisord]

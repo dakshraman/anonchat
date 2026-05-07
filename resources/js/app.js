@@ -12,8 +12,8 @@ function initEcho() {
             broadcaster: 'reverb',
             key: 'reverb-app-key', // Required by Echo even for Reverb
             wsHost: window.location.hostname,
-            wsPort: 8080,
-            wssPort: 8080,
+            wsPort: window.location.protocol === 'https:' ? 443 : 8080,
+            wssPort: window.location.protocol === 'https:' ? 443 : 8080,
             forceTLS: window.location.protocol === 'https:',
             enabledTransports: ['ws', 'wss'],
             auth: {
