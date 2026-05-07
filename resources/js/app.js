@@ -12,7 +12,7 @@ function initEcho() {
             broadcaster: 'reverb',
             key: 'reverb-app-key',
             wsHost: window.location.hostname,
-            wsPort: 8080,
+            wsPort: 8081,
             wssPort: 443,
             forceTLS: window.location.protocol === 'https:',
             enabledTransports: ['ws', 'wss'],

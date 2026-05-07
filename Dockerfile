@@ -44,7 +44,7 @@ chmod +x /usr/local/bin/frankenphp-wrapper
 
 # Expose ports
 EXPOSE 8080
-EXPOSE 10000
+EXPOSE 8081
 
 # Create supervisord config
 RUN mkdir -p /etc/supervisor/conf.d
@@ -84,8 +84,13 @@ ENV_EOF
 # Run migrations
 php artisan migrate --force
 
-echo "Starting services..."
-exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+# Start Reverb in background on port 8081
+echo "Starting Reverb server..."
+php /var/www/artisan reverb:start --host=0.0.0.0 --port=8081 &
+sleep 2
+
+echo "Starting FrankenPHP..."
+exec /usr/local/bin/frankenphp run --conf /etc/caddy/Caddyfile
 EOF
 
 # Create custom Caddyfile to reverse proxy Reverb
@@ -95,13 +100,13 @@ COPY --chmod=644 <<'EOF' /etc/caddy/Caddyfile
     order php_server before file_server
 }
 
-:10000 {
+:8080 {
     root * /var/www/public
     
     @reverb {
-        path /app/* /apps/*
+        path /app/*
     }
-    reverse_proxy @reverb 127.0.0.1:8080
+    reverse_proxy @reverb localhost:8081
 
     php_server
     file_server
