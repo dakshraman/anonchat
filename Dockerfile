@@ -34,6 +34,14 @@ RUN npm install && npm run build
 # Set permissions
 RUN chown -R www-data:www-data storage bootstrap/cache
 
+# Fix executable permissions
+RUN chmod 755 /usr/local/bin/frankenphp
+
+# Create wrapper script for frankenphp
+RUN echo '#!/bin/sh\n\
+exec /bin/sh -c "exec /usr/local/bin/frankenphp \"\$@\""' > /usr/local/bin/frankenphp-wrapper && \
+chmod +x /usr/local/bin/frankenphp-wrapper
+
 # Expose ports
 EXPOSE 8080
 EXPOSE 10000
@@ -121,7 +129,7 @@ stderr_logfile=/dev/stderr
 stderr_logfile_maxbytes=0
 
 [program:php-app]
-command=frankenphp run --config /etc/caddy/Caddyfile --listen :10000
+command=sh -c "exec php -S 0.0.0.0:10000 -t /var/www/public"
 directory=/var/www
 autostart=true
 autorestart=true
