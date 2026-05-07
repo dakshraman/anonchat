@@ -34,6 +34,7 @@ new class extends Component
             return $this->redirectRoute('chat', ['sessionId' => $activeSession->id], navigate: true);
         }
 
+        // First try gender-filtered match
         $targetGenders = [];
         if ($user->target_gender === 'any' || $user->target_gender === 'both') {
             $targetGenders = ['male', 'female', 'other'];
@@ -42,7 +43,6 @@ new class extends Component
         }
 
         $potentialMatch = User::where('id', '!=', $user->id)
-            ->where('is_guest', '!=', false)
             ->where('is_online', true)
             ->whereIn('gender', $targetGenders)
             ->where(function ($query) use ($user) {
@@ -58,9 +58,23 @@ new class extends Component
             })
             ->first();
 
+        // If no filtered match, try ANY online user (no gender filter)
+        if (!$potentialMatch) {
+            $potentialMatch = User::where('id', '!=', $user->id)
+                ->where('is_online', true)
+                ->whereDoesntHave('chatSessionsAsUser1', function ($query) {
+                    $query->where('status', 'active');
+                })
+                ->whereDoesntHave('chatSessionsAsUser2', function ($query) {
+                    $query->where('status', 'active');
+                })
+                ->first();
+        }
+
         if (!$potentialMatch) {
             $user->update(['is_online' => true]);
             
+            // First try gender-filtered waiting user
             $existingWaiting = ChatSession::where('status', 'waiting')
                 ->where('user1_id', '!=', $user->id)
                 ->whereHas('user1', function ($query) use ($user, $targetGenders) {
@@ -72,6 +86,16 @@ new class extends Component
                         });
                 })
                 ->first();
+            
+            // If no filtered waiting, try ANY waiting user
+            if (!$existingWaiting) {
+                $existingWaiting = ChatSession::where('status', 'waiting')
+                    ->where('user1_id', '!=', $user->id)
+                    ->whereDoesntHave('user1.chatSessionsAsUser2', function ($query) {
+                        $query->where('status', 'active');
+                    })
+                    ->first();
+            }
 
             if ($existingWaiting) {
                 $existingWaiting->update([
