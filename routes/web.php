@@ -27,3 +27,4 @@ Route::post('/chat/{sessionId}/typing', [ChatController::class, 'typing'])->midd
 Route::post('/chat/{sessionId}/end', [ChatController::class, 'endChat'])->middleware('auth')->name('chat.end');
 Route::post('/chat/{sessionId}/skip', [ChatController::class, 'skipChat'])->middleware('auth')->name('chat.skip');
 Route::get('/chat/{sessionId}/messages', [ChatController::class, 'getMessages'])->middleware('auth')->name('chat.messages');
+Route::get('/chat/{sessionId}/status', [ChatController::class, 'getSessionStatus'])->middleware('auth')->name('chat.status');

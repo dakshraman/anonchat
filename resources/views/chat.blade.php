@@ -193,10 +193,34 @@
     
     const sessionId = {{ $session->id }};
     const userId = {{ auth()->id() }};
+    const otherUserId = {{ $otherUser->id }};
     const chatContainer = document.getElementById('chat-messages');
     const messageInput = document.getElementById('message-input');
     const sendBtn = document.getElementById('send-btn');
     let typingTimeout = null;
+    let sessionActive = true;
+
+    // Poll to check if other user left the chat
+    setInterval(async () => {
+        if (!sessionActive) return;
+        try {
+            const response = await fetch(`/chat/${sessionId}/status`);
+            const data = await response.json();
+            if (!data.active) {
+                sessionActive = false;
+                showDisconnectOverlay();
+            }
+        } catch (error) {}
+    }, 3000);
+
+    function showDisconnectOverlay() {
+        const overlay = document.getElementById('disconnect-overlay');
+        if (overlay) {
+            overlay.classList.add('active');
+        }
+        if (messageInput) messageInput.disabled = true;
+        if (sendBtn) sendBtn.disabled = true;
+    }
 
     loadMessages();
 

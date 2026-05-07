@@ -230,4 +230,24 @@ class ChatController extends Controller
 
         return response()->json(['messages' => $messages]);
     }
+
+    public function getSessionStatus($sessionId)
+    {
+        $user = auth()->user();
+        
+        $session = ChatSession::where('id', $sessionId)
+            ->where(function ($query) use ($user) {
+                $query->where('user1_id', $user->id)->orWhere('user2_id', $user->id);
+            })
+            ->first();
+
+        if (!$session) {
+            return response()->json(['active' => false]);
+        }
+
+        return response()->json([
+            'active' => $session->status === 'active',
+            'ended' => $session->status === 'ended'
+        ]);
+    }
 }
