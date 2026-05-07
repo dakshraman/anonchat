@@ -19,6 +19,16 @@ new class extends Component
             $this->findMatch();
         }
     }
+    
+    public function boot()
+    {
+        // Listen for realtime match found event via Echo
+        $this->dispatch('onMatchFound', auth()->id())->listen('match-found', function($data) {
+            if (!empty($data['session_id'])) {
+                return $this->redirectRoute('chat', ['sessionId' => $data['session_id']], navigate: true);
+            }
+        });
+    }
 
     public function findMatch()
     {
