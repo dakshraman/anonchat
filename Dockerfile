@@ -70,24 +70,11 @@ DB_FOREIGN_KEYS=true
 SESSION_DRIVER=cookie
 CACHE_STORE=file
 
-BROADCAST_CONNECTION=reverb
-REVERB_APP_ID="${REVERB_APP_ID}"
-REVERB_APP_KEY="${REVERB_APP_KEY}"
-REVERB_APP_SECRET="${REVERB_APP_SECRET}"
-REVERB_HOST="${REVERB_HOST}"
-REVERB_PORT=443
-REVERB_SCHEME=https
-REVERB_SERVER_HOST="0.0.0.0"
-REVERB_SERVER_PORT=8080
+BROADCAST_CONNECTION=log
 ENV_EOF
 
 # Run migrations
 php artisan migrate --force
-
-# Start Reverb in background on port 8081
-echo "Starting Reverb server..."
-php /var/www/artisan reverb:start --host=0.0.0.0 --port=8081 &
-sleep 2
 
 echo "Starting FrankenPHP..."
 exec /usr/local/bin/frankenphp run --conf /etc/caddy/Caddyfile
