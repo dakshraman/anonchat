@@ -25,4 +25,5 @@ Route::get('/chat/{sessionId}', [ChatController::class, 'chat'])->middleware('au
 Route::post('/chat/{sessionId}/send', [ChatController::class, 'sendMessage'])->middleware('auth')->name('chat.send');
 Route::post('/chat/{sessionId}/typing', [ChatController::class, 'typing'])->middleware('auth')->name('chat.typing');
 Route::post('/chat/{sessionId}/end', [ChatController::class, 'endChat'])->middleware('auth')->name('chat.end');
+Route::post('/chat/{sessionId}/skip', [ChatController::class, 'skipChat'])->middleware('auth')->name('chat.skip');
 Route::get('/chat/{sessionId}/messages', [ChatController::class, 'getMessages'])->middleware('auth')->name('chat.messages');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\ChatMessageEvent;
+use App\Events\ChatEndedEvent;
 use App\Events\UserTypingEvent;
 use App\Models\ChatMessage;
 use App\Models\ChatSession;
@@ -170,12 +171,39 @@ class ChatController extends Controller
             })
             ->firstOrFail();
 
-        $session->end();
+        if ($session->status !== 'ended') {
+            $session->end();
+            event(new ChatEndedEvent($session->id));
+        }
 
         $otherUser = $session->getOtherUser($user->id);
         $otherUser->update(['is_online' => true]);
+        $user->update(['is_online' => true]);
 
         return redirect('/dashboard')->with('message', 'Chat ended. Find a new partner!');
+    }
+
+    public function skipChat($sessionId)
+    {
+        $user = auth()->user();
+        
+        $session = ChatSession::where('id', $sessionId)
+            ->where(function ($query) use ($user) {
+                $query->where('user1_id', $user->id)->orWhere('user2_id', $user->id);
+            })
+            ->firstOrFail();
+
+        if ($session->status !== 'ended') {
+            $session->end();
+            event(new ChatEndedEvent($session->id));
+        }
+
+        $otherUser = $session->getOtherUser($user->id);
+        $otherUser->update(['is_online' => true]);
+        $user->update(['is_online' => true]);
+
+        // Redirect back to dashboard with auto_search flag
+        return redirect()->route('dashboard', ['auto_search' => 1]);
     }
 
     public function getMessages($sessionId)

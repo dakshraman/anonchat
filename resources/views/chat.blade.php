@@ -17,48 +17,77 @@
     .messages-container {
         flex: 1;
         overflow-y: auto;
+        scroll-behavior: smooth;
     }
+    .bubble-wrapper {
+        display: flex;
+        flex-direction: column;
+        max-width: 85%;
+        margin-bottom: 4px;
+    }
+    .bubble-wrapper-sent { align-self: flex-end; align-items: flex-end; }
+    .bubble-wrapper-received { align-self: flex-start; align-items: flex-start; }
+    
     .bubble {
-        max-width: 80%;
-        padding: 12px 18px;
-        border-radius: 1.5rem;
-        font-size: 0.95rem;
-        line-height: 1.5;
+        padding: 14px 18px;
+        font-size: 1rem;
+        line-height: 1.4;
         position: relative;
-        animation: bubble-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+        animation: bubble-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
     }
+    
     .bubble-sent {
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.8) 0%, rgba(99, 102, 241, 0.8) 100%);
+        background: linear-gradient(135deg, var(--lavender-dark) 0%, var(--indigo) 100%);
         color: white;
-        border-bottom-right-radius: 4px;
-        align-self: flex-end;
-        box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
+        border-radius: 1.5rem 1.5rem 0.25rem 1.5rem;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
     }
+    
     .bubble-received {
-        background: rgba(255, 255, 255, 0.08);
-        color: #f3f4f6;
-        border-bottom-left-radius: 4px;
-        align-self: flex-start;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.05);
+        color: #f8f9fa;
+        border-radius: 1.5rem 1.5rem 1.5rem 0.25rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
     }
+    
     @keyframes bubble-in {
-        from { opacity: 0; transform: translateY(20px) scale(0.9); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
+        from { opacity: 0; transform: translateY(20px) scale(0.95) translateZ(0); }
+        to { opacity: 1; transform: translateY(0) scale(1) translateZ(0); }
     }
     .typing-dot {
         width: 6px;
         height: 6px;
-        background: #a78bfa;
+        background: var(--lavender);
         border-radius: 50%;
         animation: typing 1.4s infinite ease-in-out both;
     }
     .typing-dot:nth-child(2) { animation-delay: 0.2s; }
     .typing-dot:nth-child(3) { animation-delay: 0.4s; }
     @keyframes typing {
-        0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
-        40% { transform: scale(1); opacity: 1; }
+        0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+        40% { transform: scale(1.2); opacity: 1; }
+    }
+    
+    #disconnect-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(3, 0, 20, 0.8);
+        backdrop-filter: blur(8px);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    #disconnect-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
     }
 </style>
 @endsection
@@ -88,13 +117,37 @@
                         </div>
                     </div>
                     
-                    <form action="{{ route('chat.end', $session->id) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-outline-danger btn-sm px-3 rounded-3 fw-bold">
-                            End Chat
-                        </button>
-                    </form>
+                    <div class="d-flex align-items-center gap-2">
+                        <form action="{{ route('chat.skip', $session->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-warning btn-sm px-3 rounded-3 fw-bold d-flex align-items-center gap-2">
+                                Skip
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+                            </button>
+                        </form>
+                        <form action="{{ route('chat.end', $session->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-danger btn-sm px-3 rounded-3 fw-bold">
+                                End Chat
+                            </button>
+                        </form>
+                    </div>
                 </header>
+
+                <!-- Disconnect Overlay -->
+                <div id="disconnect-overlay">
+                    <div class="glass-card p-5 text-center" style="max-width: 400px; border-radius: 2rem;">
+                        <div class="mx-auto bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                            <svg class="text-danger" width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                        </div>
+                        <h3 class="h4 fw-bold text-white mb-2">Partner Disconnected</h3>
+                        <p class="text-secondary mb-4">The other person has ended the chat session.</p>
+                        <form action="{{ route('chat.skip', $session->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn glass-button w-100 py-3">Find New Partner</button>
+                        </form>
+                    </div>
+                </div>
 
                 <!-- Messages -->
                 <main id="chat-messages" class="messages-container p-4 d-flex flex-column gap-3">
@@ -177,6 +230,14 @@
                 if (data.user_id !== userId) {
                     markTyping(data.is_typing);
                 }
+            })
+            .listen('ChatEndedEvent', (data) => {
+                const overlay = document.getElementById('disconnect-overlay');
+                if (overlay) {
+                    overlay.classList.add('active');
+                }
+                if (messageInput) messageInput.disabled = true;
+                if (sendBtn) sendBtn.disabled = true;
             });
     }
 
@@ -228,14 +289,26 @@
 
     function addMessage(name, message, isSent, animate = true) {
         if (!chatContainer) return;
+        const wrapper = document.createElement('div');
+        wrapper.className = `bubble-wrapper ${isSent ? 'bubble-wrapper-sent' : 'bubble-wrapper-received'}`;
+        
         const div = document.createElement('div');
         div.className = `bubble ${isSent ? 'bubble-sent' : 'bubble-received'}`;
         if (!animate) div.style.animation = 'none';
         
         const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        div.innerHTML = `<div class="fw-bold text-uppercase opacity-50 mb-1" style="font-size: 0.6rem; letter-spacing: 0.05em;">${isSent ? 'You' : name} • ${time}</div><div>${message}</div>`;
+        div.innerHTML = `<div>${message}</div>`;
         
-        chatContainer.appendChild(div);
+        const meta = document.createElement('div');
+        meta.className = 'mt-1 opacity-50 fw-medium';
+        meta.style.fontSize = '0.65rem';
+        meta.style.letterSpacing = '0.05em';
+        meta.innerHTML = `${isSent ? 'You' : name} • ${time}`;
+        
+        wrapper.appendChild(div);
+        wrapper.appendChild(meta);
+        
+        chatContainer.appendChild(wrapper);
         scrollToBottom();
     }
 
