@@ -1,6 +1,7 @@
 <?php
 
 use Livewire\Volt\Component;
+use App\Events\MatchFoundEvent;
 use App\Models\ChatSession;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -18,16 +19,6 @@ new class extends Component
         if (request()->query('auto_search') == 1) {
             $this->findMatch();
         }
-    }
-    
-    public function boot()
-    {
-        // Listen for realtime match found event via Echo
-        $this->dispatch('onMatchFound', auth()->id())->listen('match-found', function($data) {
-            if (!empty($data['session_id'])) {
-                return $this->redirectRoute('chat', ['sessionId' => $data['session_id']], navigate: true);
-            }
-        });
     }
 
     public function findMatch()
@@ -92,6 +83,9 @@ new class extends Component
                 $user->update(['is_online' => false]);
                 $existingWaiting->user1->update(['is_online' => false]);
                 
+                // Fire realtime event to notify the other user
+                event(new MatchFoundEvent($existingWaiting, $user->id));
+                
                 return $this->redirectRoute('chat', ['sessionId' => $existingWaiting->id], navigate: true);
             }
 
@@ -117,6 +111,9 @@ new class extends Component
 
         $user->update(['is_online' => false]);
         $potentialMatch->update(['is_online' => false]);
+
+        // Fire realtime event to notify the other user
+        event(new MatchFoundEvent($chatSession, $user->id));
 
         return $this->redirectRoute('chat', ['sessionId' => $chatSession->id], navigate: true);
     }
@@ -285,3 +282,22 @@ new class extends Component
         </div>
     </div>
 </div>
+
+@script
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Listen for match found event via Echo/Reverb
+    if (typeof Echo !== 'undefined') {
+        var userId = {{ auth()->id() }};
+        Echo.private('user.' + userId)
+            .listen('MatchFoundEvent', function(e) {
+                console.log('Match found!', e);
+                // Redirect to chat immediately
+                if (e.session_id) {
+                    window.location.href = '/chat/' + e.session_id;
+                }
+            });
+    }
+});
+</script>
+@endscript
