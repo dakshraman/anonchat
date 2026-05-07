@@ -309,19 +309,7 @@ new class extends Component
 
 @script
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Listen for match found event via Echo/Reverb
-    if (typeof Echo !== 'undefined') {
-        var userId = {{ auth()->id() }};
-        Echo.private('user.' + userId)
-            .listen('MatchFoundEvent', function(e) {
-                console.log('Match found!', e);
-                // Redirect to chat immediately
-                if (e.session_id) {
-                    window.location.href = '/chat/' + e.session_id;
-                }
-            });
-    }
-});
+// Polling-based check - simpler and more reliable without Reverb
+// The wire:poll.5s="checkMatch" in the parent div handles realtime checks
 </script>
 @endscript
